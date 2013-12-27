@@ -6,6 +6,7 @@ import android.content.res.AssetManager;
 import android.media.AudioManager;
 import android.media.SoundPool;
 import android.opengl.GLSurfaceView;
+import android.os.SystemClock;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.Window;
@@ -26,6 +27,7 @@ public class GLView extends GLSurfaceView {
     Stack stackId = new Stack();
     AssetManager assetManager;
     char[][] mas = new char[6][6];
+    long[][] elapsedTime = new long[6][6];
     char[] fretMas = new char[5];
 
     int pID = -1;
@@ -40,6 +42,7 @@ public class GLView extends GLSurfaceView {
         list.add(1);
         list.add(2);
         list.add(3);
+        list.remove();
 
         glRenderer = new GLRenderer(6);
         this.setRenderer(glRenderer);
@@ -68,32 +71,39 @@ public class GLView extends GLSurfaceView {
 
                 int x = (int)((width - event.getX(pointIndex)) / ((width / glRenderer.getAbscissa()) * 1.8f));
                 int y = (int)((height - (event.getY(pointIndex) - titleBarH)) / (height / 6));
-
                 int playId = (y + 1) + (6 * x);
-                /*if (pID == playId) {
-                    Log.i("info", " STOP ");
-                    soundPool.setVolume(pID,-1,-1);
-                    SystemClock.sleep(1);
-                    soundPool.stop(pID);
-                }*/
-                //Log.i("info"," X = " + Integer.toString(x));
-                //Log.i("info"," Y = " + Integer.toString(y));
-                //for (int p = )
+
                 switch(actionMask) {
                     case MotionEvent.ACTION_POINTER_DOWN:{
-                        pID = soundPool.play(playId, 1, 1, 1, 0, 1.0f);
+                        elapsedTime[x][y] = SystemClock.elapsedRealtime();
+                        //pID = soundPool.play(playId, 1, 1, 1, 0, 1.0f);
+                        Log.i("info", " X = " + Integer.toString(x) + "  Y = " + Integer.toString(y));
                         break; }
                     case MotionEvent.ACTION_DOWN:        {
+                        elapsedTime[x][y] = SystemClock.elapsedRealtime();
                         Log.i("info", " X = " + Integer.toString(x) + "  Y = " + Integer.toString(y));
-                        Log.i("info"," play id = " + Integer.toString(playId));
-                        pID = soundPool.play(playId, 1, 1, 1, 0, 1.0f);
+                        //Log.i("info"," play id = " + Integer.toString(playId));
+                        //pID = soundPool.play(playId, 1, 1, 1, 0, 1.0f);
                         break;
                     }
-                    case MotionEvent.ACTION_POINTER_UP:  { /*pID = soundPool.play(playId, 1, 1, 1, 0, 1.0f);*/ break; }
-                    case MotionEvent.ACTION_UP:          { /*pID = soundPool.play(playId, 1, 1, 1, 0, 1.0f);*/ break; }
+                    case MotionEvent.ACTION_POINTER_UP:  { /*pID = soundPool.play(playId, 1, 1, 1, 0, 1.0f);*/
+                        long timeElapsed = SystemClock.elapsedRealtime() - elapsedTime[x][y];
+                        if ((SystemClock.elapsedRealtime() - elapsedTime[x][y]) < 100){
+                            Log.i("info"," Play sound id = " + Integer.toString(playId));
+                            pID = soundPool.play(playId, 1, 1, 1, 0, 1.0f);
+                        }
+                        //Log.i("info"," - Touch time elapsed = " + Long.toString(timeElapsed));
+                        break; }
+                    case MotionEvent.ACTION_UP:          { /*pID = soundPool.play(playId, 1, 1, 1, 0, 1.0f);*/
+                        long timeElapsed = SystemClock.elapsedRealtime() - elapsedTime[x][y];
+                        if ((SystemClock.elapsedRealtime() - elapsedTime[x][y]) < 100){
+                            Log.i("info"," Play sound id = " + Integer.toString(playId));
+                            pID = soundPool.play(playId, 1, 1, 1, 0, 1.0f);
+                        }
+                        //Log.i("info"," - Touch time elapsed = " + Long.toString(timeElapsed));
+                        break; }
                     default:break;
                 }
-
             }
         });
         return true;
